@@ -32,6 +32,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: rgba(0,0,0,0.1);
 }
 
 nav a {
@@ -39,10 +40,20 @@ nav a {
   text-decoration: none;
   color: var(--text);
   font-weight: 500;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+  cursor: pointer;
 }
 
 nav a:hover {
-  color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+nav a.active {
+  background: var(--accent);
+  color: white;
 }
 
 .hero {
@@ -71,4 +82,10 @@ footer {
   text-align: center;
   padding: 2rem;
   opacity: 0.7;
+}
+
+ul {
+  text-align: left;
+  display: inline-block;
+  margin-top: 1rem;
 }
