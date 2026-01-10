@@ -17,11 +17,14 @@ function toggleDarkMode() {
 // GAMES LIST (EDIT THIS ONLY)
 // --------------------
 const gamesList = [
-  { name: "Slope", url: "https://example.com" },
-  { name: "Retro Bowl", url: "https://example.com" },
-  { name: "1v1.LOL", url: "https://example.com" },
-  { name: "Minecraft", url: "https://example.com" }
+  { name: "pepsinitro", url: "#" },
+  { name: "monkeygg", url: "#" },
+  { name: "selenite", url: "#" },
+  { name: "kirbygames", url: "#" },
+  { name: "thereal12", url: "#" },
+  { name: "whisperbridge", url: "#" }
 ];
+
 
 // --------------------
 // PAGE CONTENT
