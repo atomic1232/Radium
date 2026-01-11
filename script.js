@@ -32,14 +32,14 @@ const gamesList = [
 const pages = {
   home: `
     <section class="hero">
-      <h2>Welcome 👋</h2>
+      <h2>Radium</h2>
       <p>Select a tab above to get started.</p>
     </section>
   `,
 
   games: `
     <section class="hero">
-      <h2>Games 🎮</h2>
+      <h2>Games</h2>
       <div class="games-grid">
         ${gamesList.map(game => `
           <button class="c-button c-button--gooey"
@@ -56,14 +56,14 @@ const pages = {
 
   unblockers: `
     <section class="hero">
-      <h2>Unblockers 🔓</h2>
+      <h2>Unblockers</h2>
       <p>Coming soon.</p>
     </section>
   `,
 
   settings: `
     <section class="hero">
-      <h2>Settings ⚙️</h2>
+      <h2>Settings</h2>
       <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
     </section>
   `
