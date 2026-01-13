@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Radium</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <header>
+    <img src="/Radium/assets/logo.png" alt="Radium" class="logo" />
+
+    <nav>
+      <a href="#" data-page="home" class="active">Home</a>
+      <a href="#" data-page="games">Games</a>
+      <a href="#" data-page="unblockers">Unblockers</a>
+      <a href="#" data-page="settings">Settings</a>
+    </nav>
+  </header>
+
+  <main id="content"></main>
+
+  <footer>
+    <p>© 2026 Radium</p>
+  </footer>
+
+  <script src="script.js"></script>
+
+  <!-- REQUIRED SVG FOR GOOEY BUTTONS -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <defs>
+      <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+        <feColorMatrix
+          in="blur"
+          mode="matrix"
+          values="1 0 0 0 0  
+                  0 1 0 0 0  
+                  0 0 1 0 0  
+                  0 0 0 18 -7"
+          result="goo" />
+        <feBlend in="SourceGraphic" in2="goo" />
+      </filter>
+    </defs>
+  </svg>
+
+</body>
+</html>
+test
