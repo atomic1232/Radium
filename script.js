@@ -1,17 +1,4 @@
-document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <title>Radium</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/gh/luminsdk/script@latest/lumin.min.js"></script>
-</head>
 
-<body>
-  <div id="app"></div>
-
-  <script src="script.js"></script>
-</body>
-</html>`)
 // =====================
 // BOOT CHECK
 // =====================
