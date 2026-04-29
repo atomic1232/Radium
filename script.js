@@ -491,3 +491,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadClock();
   }, 1000);
 });
+function initRadium() {
+  const content = document.getElementById("content");
+
+  if (!content) {
+    console.error("Missing #content root");
+    return;
+  }
+
+  // call your existing startup logic here
+  console.log("Radium initialized");
+}
+
+// run immediately
+initRadium();
