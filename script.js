@@ -1,68 +1,3 @@
-document.write(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Radium</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-
-<script src="https://cdn.jsdelivr.net/gh/luminsdk/script@latest/lumin.min.js"></script>
-
-<body>
-
-  <!-- Particles -->
-  <div id="particles-js"></div>
-
-  <div class="nav-dock" id="nav-dock">
-    <div class="nav-expanded">
-      <a href="#" data-page="home">
-        <img src="assets/HomeIcon.png" />
-        <span>Home</span>
-      </a>
-      <a href="#" data-page="games">
-        <img src="assets/GamesIcon.png" />
-        <span>Games</span>
-      </a>
-      <a href="#" data-page="settings">
-        <img src="assets/SettingIcon.png" />
-        <span>Settings</span>
-      </a>
-      <a href="#" data-page="credits">
-        <img src="assets/CreditsIcon.png" />
-        <span>Credits</span>
-      </a>
-      <a href="#" id="cloak-btn">
-        <img src="assets/CloakIcon.png" alt="Cloak">
-        <span>Cloak</span>
-      </a>
-    </div>
-  </div>  
-  <main id="content">
-
-    <div id="page-games" class="hidden">
-      <div id="games-grid"></div>
-    </div>
-
-  </main>
-
-  <!-- Game Overlay -->
-  <div id="game-container" class="game-container hidden">
-    <button id="close-game" class="close-game-btn">✕</button>
-    <iframe id="game-iframe" class="game-iframe"></iframe>
-  </div>
-
-  <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
-  <script src="script.js"></script>
-
-`)
-
-
-
-
-
-
 // =====================
 // PARTICLES.JS
 // =====================
@@ -556,3 +491,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadClock();
   }, 1000);
 });
+function initRadium() {
+  const content = document.getElementById("content");
+
+  if (!content) {
+    console.error("Missing #content root");
+    return;
+  }
+
+  // call your existing startup logic here
+  console.log("Radium initialized");
+}
+
+// run immediately
+initRadium();
