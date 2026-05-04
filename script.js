@@ -64,7 +64,7 @@ function closeGame() {
 // PAGINATION STATE
 // =====================
 let currentGamePage = 1;
-const GAMES_PER_PAGE = 50;
+const GAMES_PER_PAGE = 1000;
 
 function normalizeName(name = "") {
   return name
@@ -104,83 +104,68 @@ async function loadGames(page = 1) {
   currentGamePage = page;
 
   container.innerHTML = `
-    <div id="games-loader" class="loader">
+    <div class="loader">
       <div class="jimu-primary-loading"></div>
     </div>
   `;
 
   try {
-    let allGames = [];
-    let apiPage = 1;
+    const res = await Lumin.getGames({
+      page,
+      limit: GAMES_PER_PAGE
+    });
 
-    while (true) {
-      const res = await Lumin.getGames({
-        page: apiPage,
-        limit: 100
-      });
+    let games = res.games || [];
 
-      if (!res.games || res.games.length === 0) break;
-
-      for (const g of res.games) {
-        if (!allGames.some(x => x.id === g.id)) {
-          allGames.push(g);
-        }
-      }
-
-      if (res.games.length < 100) break;
-
-      apiPage++;
-    }
-
-    const sorted = allGames.sort((a, b) =>
-      normalizeName(a.name).localeCompare(normalizeName(b.name), "en", {
-        numeric: true
-      })
-    );
-
-    const start = (page - 1) * GAMES_PER_PAGE;
-    const end = start + GAMES_PER_PAGE;
-    const pageGames = sorted.slice(start, end);
-
-    const enrichedGames = await Promise.all(
-      pageGames.map(async (game) => {
-        const [{ url }, img] = await Promise.all([
-          Lumin.getGameUrl(game.id),
-          Lumin.getImageUrl(game.image_token).catch(() => null)
-        ]);
-        return { game, url, img };
-      })
+    // Sort ONLY current page (fast)
+    games.sort((a, b) =>
+      normalizeName(a.name).localeCompare(normalizeName(b.name))
     );
 
     container.innerHTML = "";
 
-    enrichedGames.forEach(({ game, url, img }) => {
+    games.forEach((game) => {
       const card = document.createElement("div");
       card.className = "game-card-container";
 
       card.innerHTML = `
         <div class="container">
           <div class="glass" data-text="${game.name}">
-            <img src="${img}" alt="${game.name}" />
+            <img data-token="${game.image_token}" alt="${game.name}">
           </div>
         </div>
       `;
 
-      card.addEventListener("click", () => openGame(url));
+      // 🟢 Lazy load image (only when visible)
+      const img = card.querySelector("img");
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(async (entry) => {
+          if (entry.isIntersecting) {
+            const token = img.getAttribute("data-token");
+            const url = await Lumin.getImageUrl(token).catch(() => "");
+            img.src = url;
+            observer.disconnect();
+          }
+        });
+      });
+
+      observer.observe(img);
+
+      // 🟢 Load game ONLY when clicked
+      card.onclick = async () => {
+        const { url } = await Lumin.getGameUrl(game.id);
+        openGame(url);
+      };
+
       container.appendChild(card);
     });
 
-    renderPagination(sorted.length);
-
-    const pagination = document.getElementById("game-pagination");
-    if (pagination) pagination.style.display = "flex";
-
   } catch (err) {
-    console.error("Lumin failed:", err);
+    console.error(err);
     container.innerHTML = "Failed to load games.";
   }
 }
-
 // =====================
 // SEARCH
 // =====================
@@ -253,7 +238,7 @@ const pages = {
   <div class="clock-right" id="date-display"></div>
 </div>
 
-    <h2 class="title">ᏒᐱDꞮUᎷ</h2>
+    <h2 class="title">ＲＡＤＩＵＭ</h2>
     <p class="custom-message"></p>
   </section>
 `,
@@ -488,7 +473,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }, 1000);
   
   setInterval(() => {
-    loadClock();
+    loadClock();1
   }, 1000);
 });
 function initRadium() {
