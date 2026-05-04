@@ -1,0 +1,22 @@
+[
+  {
+    "id": "home",
+    "label": "Home",
+    "icon": "assets/HomeIcon.png"
+  },
+  {
+    "id": "games",
+    "label": "Games",
+    "icon": "assets/GamesIcon.png"
+  },
+  {
+    "id": "settings",
+    "label": "Settings",
+    "icon": "assets/SettingIcon.png"
+  },
+  {
+    "id": "credits",
+    "label": "Credits",
+    "icon": "assets/CreditsIcon.png"
+  }
+]
