@@ -2,21 +2,26 @@
   {
     "id": "home",
     "label": "Home",
-    "icon": "assets/HomeIcon.png"
+    "icon": "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/HomeIcon.png"
   },
   {
     "id": "games",
     "label": "Games",
-    "icon": "assets/GamesIcon.png"
+    "icon": "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/GamesIcon.png"
   },
   {
     "id": "settings",
     "label": "Settings",
-    "icon": "assets/SettingIcon.png"
+    "icon": "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/SettingIcon.png"
   },
   {
     "id": "credits",
     "label": "Credits",
-    "icon": "assets/CreditsIcon.png"
-  }
+    "icon": "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CreditsIcon.png"
+  },
+  {
+  "id": "cloak",
+  "label": "Cloak",
+  "icon": "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CloakIcon.png"
+}
 ]
