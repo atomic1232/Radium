@@ -38,6 +38,7 @@ let cloakUrl = "https://www.google.com";
 // =====================
 let currentPage = "home";
 let clockElement = null;
+let clockInterval = null;
 
 // =====================
 // GAME OVERLAY
@@ -45,6 +46,8 @@ let clockElement = null;
 function openGame(url) {
   const container = document.getElementById("game-container");
   const iframe = document.getElementById("game-iframe");
+
+  if (!container || !iframe) return;
 
   iframe.src = url;
   container.classList.remove("hidden");
@@ -55,26 +58,25 @@ function closeGame() {
   const container = document.getElementById("game-container");
   const iframe = document.getElementById("game-iframe");
 
+  if (!container || !iframe) return;
+
   iframe.src = "";
   container.classList.add("hidden");
   document.body.style.overflow = "auto";
 }
 
 // =====================
-// PAGINATION STATE
+// GAME STATE
 // =====================
 let currentGamePage = 1;
 const GAMES_PER_PAGE = 1000;
 
 function normalizeName(name = "") {
-  return name
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9 ]/gi, "");
+  return name.trim().toLowerCase().replace(/[^a-z0-9 ]/gi, "");
 }
 
 // =====================
-// CLOAK FUNCTION
+// CLOAK
 // =====================
 function openCloaked() {
   const win = window.open("about:blank", "_blank");
@@ -117,14 +119,13 @@ async function loadGames(page = 1) {
 
     let games = res.games || [];
 
-    // Sort ONLY current page (fast)
     games.sort((a, b) =>
       normalizeName(a.name).localeCompare(normalizeName(b.name))
     );
 
     container.innerHTML = "";
 
-    games.forEach((game) => {
+    games.forEach(game => {
       const card = document.createElement("div");
       card.className = "game-card-container";
 
@@ -136,11 +137,10 @@ async function loadGames(page = 1) {
         </div>
       `;
 
-      // 🟢 Lazy load image (only when visible)
       const img = card.querySelector("img");
 
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(async (entry) => {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(async entry => {
           if (entry.isIntersecting) {
             const token = img.getAttribute("data-token");
             const url = await Lumin.getImageUrl(token).catch(() => "");
@@ -152,7 +152,6 @@ async function loadGames(page = 1) {
 
       observer.observe(img);
 
-      // 🟢 Load game ONLY when clicked
       card.onclick = async () => {
         const { url } = await Lumin.getGameUrl(game.id);
         openGame(url);
@@ -166,6 +165,7 @@ async function loadGames(page = 1) {
     container.innerHTML = "Failed to load games.";
   }
 }
+
 // =====================
 // SEARCH
 // =====================
@@ -175,19 +175,14 @@ function initGameSearch() {
 
   input.addEventListener("input", e => {
     const term = e.target.value.toLowerCase();
-    const cards = document.querySelectorAll("[data-text]");
+    const cards = document.querySelectorAll(".game-card-container");
 
     cards.forEach(card => {
-      const name = card.getAttribute("data-text").toLowerCase();
-      const wrapper = card.closest(".game-card-container");
+      const name = card.querySelector(".glass")?.getAttribute("data-text") || "";
+      const match = name.toLowerCase().includes(term);
 
-      if (wrapper) {
-        wrapper.style.display = name.includes(term) ? "block" : "none";
-      }
+      card.style.display = match ? "block" : "none";
     });
-
-    const pagination = document.getElementById("game-pagination");
-    if (pagination) pagination.style.display = "none";
   });
 }
 
@@ -214,15 +209,8 @@ function initPanicSettings() {
     document.addEventListener("keydown", listener);
   };
 
-  urlInput.oninput = () => {
-    panicUrl = urlInput.value;
-  };
-
-  if (cloakInput) {
-    cloakInput.oninput = () => {
-      cloakUrl = cloakInput.value;
-    };
-  }
+  urlInput.oninput = () => (panicUrl = urlInput.value);
+  if (cloakInput) cloakInput.oninput = () => (cloakUrl = cloakInput.value);
 }
 
 // =====================
@@ -231,12 +219,11 @@ function initPanicSettings() {
 const pages = {
   home: `
   <section class="hero">
-
     <div class="top-clock">
-  <div class="clock-left" id="clock-widget"></div>
-  <div class="clock-divider"></div>
-  <div class="clock-right" id="date-display"></div>
-</div>
+      <div class="clock-left" id="clock-widget"></div>
+      <div class="clock-divider"></div>
+      <div class="clock-right" id="date-display"></div>
+    </div>
 
     <h2 class="title">ＲＡＤＩＵＭ</h2>
     <p class="custom-message"></p>
@@ -244,27 +231,22 @@ const pages = {
 `,
 
   games: `
-    <section class="hero">
-      <h2>Games</h2>
+  <section class="hero">
+    <h2>Games</h2>
 
-      <div class="search-container">
-        <input id="game-search" type="text" placeholder="Search games..." />
-      </div>
+    <div class="search-container">
+      <input id="game-search" type="text" placeholder="Search games..." />
+    </div>
 
-      <div id="games-grid">
-        <div id="games-loader" class="loader">
-          <div class="jimu-primary-loading"></div>
-        </div>
-      </div>
-    </section>
-  `,
+    <div id="games-grid"></div>
+  </section>
+`,
 
   settings: `
   <section class="hero">
     <h2>Settings</h2>
 
     <div class="panic-box">
-
       <div class="panic-row">
         <span>Panic Key: <strong id="panic-key-display">${panicKey}</strong></span>
         <button id="set-panic-key" class="panic-btn">Change</button>
@@ -279,214 +261,150 @@ const pages = {
         <span>Cloak Redirect:</span>
         <input id="cloak-url-input" type="text" value="${cloakUrl}">
       </div>
-
     </div>
   </section>
 `,
 
   credits: `
-    <section class="hero">
-      <h2>Credits</h2>
+  <section class="hero">
+    <h2>Credits</h2>
 
-      <div class="credits-list">
-        <p>Lumin: <a href="https://luminsdk.com/" target="_blank">https://luminsdk.com/</a></p>
-        <p>Selenite: <a href="https://selenite.cc" target="_blank">https://selenite.cc</a></p>
-        <p>Vapor: <a href="https://pipseducationfund.org" target="_blank">https://pipseducationfund.org</a></p>
-      </div>
-    </section>
-  `
+    <div class="credits-list">
+      <p>Lumin: <a href="https://luminsdk.com/" target="_blank">https://luminsdk.com/</a></p>
+      <p>Selenite: <a href="https://selenite.cc" target="_blank">https://selenite.cc</a></p>
+      <p>Vapor: <a href="https://pipseducationfund.org" target="_blank">https://pipseducationfund.org</a></p>
+    </div>
+  </section>
+`
 };
 
 // =====================
-// PAGINATION
+// CLOCK (FIXED)
 // =====================
-function renderPagination(totalGames) {
-  const container = document.getElementById("games-grid");
-  if (!container) return;
+function updateDate() {
+  const el = document.getElementById("date-display");
+  if (!el) return;
+  el.textContent = new Date().toDateString();
+}
 
-  let pagination = document.getElementById("game-pagination");
+async function loadClock() {
+  const clockTarget = document.getElementById("clock-widget");
+  if (!clockTarget) return;
 
-  if (!pagination) {
-    pagination = document.createElement("div");
-    pagination.id = "game-pagination";
+  try {
+    const res = await Lumin.runWidget({
+      type: "clock",
+      location: "Redmond, Washington, USA",
+      tz_name: "America/Los_Angeles",
+      time_format: "12h"
+    });
 
-    pagination.style.display = "flex";
-    pagination.style.justifyContent = "center";
-    pagination.style.gap = "8px";
-    pagination.style.marginTop = "20px";
+    clockTarget.innerHTML = "";
+    clockTarget.appendChild(res.element || res);
+    clockElement = clockTarget;
 
-    container.parentElement.appendChild(pagination);
-  }
-
-  pagination.innerHTML = "";
-
-  const totalPages = Math.ceil(totalGames / GAMES_PER_PAGE);
-
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-
-    btn.style.padding = "6px 10px";
-    btn.style.border = "1px solid #0bfc03";
-    btn.style.background = i === currentGamePage ? "#0bfc03" : "transparent";
-    btn.style.color = i === currentGamePage ? "black" : "#0bfc03";
-    btn.style.cursor = "pointer";
-    btn.style.borderRadius = "6px";
-
-    btn.onclick = () => loadGames(i);
-
-    pagination.appendChild(btn);
+  } catch {
+    clockTarget.textContent = new Date().toLocaleTimeString();
+    clockElement = clockTarget;
   }
 }
 
 // =====================
-// INIT
+// PAGE SYSTEM (FIXED)
+// =====================
+function loadPage(page) {
+  const content = document.getElementById("content");
+  if (!content) return;
+
+  currentPage = page;
+  content.innerHTML = pages[page] || pages.home;
+
+  document.querySelectorAll("[data-page]").forEach(link => {
+    link.classList.toggle("active", link.dataset.page === page);
+  });
+
+  if (page === "games") {
+    loadGames(1);
+    initGameSearch();
+  }
+
+  if (page === "settings") {
+    initPanicSettings();
+  }
+
+  if (page === "home") {
+    const msg = document.querySelector(".custom-message");
+    if (msg) {
+      const messages = [
+        "By UGA",
+        "Legends tell of a bee hidden in Radium",
+        "Inspired by selenite",
+        "Go set your panic key today!",
+        "Report bugs!"
+      ];
+      msg.textContent = messages[Math.floor(Math.random() * messages.length)];
+    }
+
+    updateDate();
+    loadClock();
+  }
+}
+
+// =====================
+// DOCK (FIXED CLICK ISSUE)
+// =====================
+async function buildDock() {
+  const dock = document.querySelector(".nav-expanded");
+  if (!dock) return;
+
+  dock.innerHTML = "";
+
+  const dockPages = [
+    { id: "home", label: "Home", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/HomeIcon.png" },
+    { id: "games", label: "Games", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/GamesIcon.png" },
+    { id: "settings", label: "Settings", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/SettingIcon.png" },
+    { id: "credits", label: "Credits", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CreditsIcon.png" }
+  ];
+
+  dockPages.forEach(page => {
+    const a = document.createElement("a");
+    a.dataset.page = page.id;
+
+    a.innerHTML = `
+      <img src="${page.icon}" alt="${page.label}">
+      <span>${page.label}</span>
+    `;
+
+    if (page.id === "home") a.classList.add("active");
+
+    a.onclick = e => {
+      e.preventDefault();
+      loadPage(page.id);
+      history.pushState({}, "", `#${page.id}`);
+    };
+
+    dock.appendChild(a);
+  });
+}
+
+// =====================
+// INIT (FIXED ORDER)
 // =====================
 document.addEventListener("DOMContentLoaded", async () => {
-  const cloakBtn = document.getElementById("cloak-btn");
-  if (cloakBtn) {
-    cloakBtn.addEventListener("click", e => {
-      e.preventDefault();
-      openCloaked();
-    });
-  }
+  await buildDock();
 
-  try {
-    if (typeof Lumin !== "undefined") {
-      await Lumin.init({});
-    }
-  } catch (e) {
-    console.warn(e);
-  }
-
-  document.getElementById("close-game")?.addEventListener("click", closeGame);
+  const initial = location.hash.replace("#", "") || "home";
 
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") closeGame();
     if (e.key === panicKey) window.location.href = panicUrl;
   });
 
-  const content = document.getElementById("content");
-
-  function loadPage(page) {
-    currentPage = page;
-
-    content.innerHTML = pages[page] || pages.home;
-
-    document.querySelectorAll("[data-page]").forEach(link => {
-      link.classList.toggle("active", link.dataset.page === page);
-    });
-
-    if (page === "games") {
-      loadGames(1);
-      initGameSearch();
-    }
-
-    if (page === "settings") {
-      initPanicSettings();
-    }
-
-    if (page === "home") {
-      const msg = document.querySelector(".custom-message");
-      if (msg) {
-        const messages = [
-          "By UGA",
-          "Legends tell of a bee hidden in Radium",
-          "Inspired by selenite",
-          "Go set your panic key today!",
-          "Report bugs!"
-        ];
-        msg.textContent =
-          messages[Math.floor(Math.random() * messages.length)];
-      }
-      clockElement = null;
-      loadClock();
-      
-      setTimeout(() => {
-        updateDate();
-        loadClock();
-      }, 50);
-    }
-    if (page === "home") {
-      setTimeout(() => {
-        updateDate();
-        loadClock();
-      }, 50);
-    }
-  }
-
-  document.querySelectorAll("[data-page]").forEach(link => {
-    link.addEventListener("click", e => {
-      e.preventDefault();
-      loadPage(link.dataset.page);
-      history.pushState({}, "", `#${link.dataset.page}`);
-    });
-  });
-
-  loadPage(location.hash.replace("#", "") || "home");
-
-  // CLOCK FIX (REAL VERSION)
-  function updateDate() {
-    const el = document.getElementById("date-display");
-    if (!el) return;
-    el.textContent = new Date().toDateString();
-  }
-
-  async function loadClock() {
-    const clockTarget = document.getElementById("clock-widget");
-    if (!clockTarget) return;
-  
-    try {
-      const res = await Lumin.runWidget({
-        type: "clock",
-        location: "Redmond, Washington, USA",
-        tz_name: "America/Los_Angeles",
-        time_format: "12h"
-      });
-  
-      clockTarget.innerHTML = "";
-      clockTarget.appendChild(res.element || res);
-  
-      // ✅ IMPORTANT: cache the actual text node we will update
-      clockElement = clockTarget.querySelector("*") || clockTarget;
-  
-    } catch (e) {
-      clockTarget.textContent = new Date().toLocaleTimeString();
-      clockElement = clockTarget;
-    }
-  }
-  function updateClockText() {
-    if (!clockElement) return;
-  
-    const now = new Date();
-  
-    // If widget replaced DOM with element
-    if (clockElement.nodeType === 1) {
-      clockElement.textContent = now.toLocaleTimeString();
-    }
-  }
+  loadPage(initial);
 
   updateDate();
   loadClock();
-  setInterval(() => {
-    updateDate();
-  }, 1000);
-  
-  setInterval(() => {
-    loadClock();1
-  }, 1000);
+
+  setInterval(updateDate, 1000);
+  setInterval(loadClock, 1000);
 });
-function initRadium() {
-  const content = document.getElementById("content");
-
-  if (!content) {
-    console.error("Missing #content root");
-    return;
-  }
-
-  // call your existing startup logic here
-  console.log("Radium initialized");
-}
-
-// run immediately
-initRadium();
