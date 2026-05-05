@@ -275,6 +275,24 @@ const pages = {
       <p>Vapor: <a href="https://pipseducationfund.org" target="_blank">https://pipseducationfund.org</a></p>
     </div>
   </section>
+`,
+  cloak: `
+  <section class="hero">
+    <h2>Cloak Mode</h2>
+
+    <div class="panic-box">
+      <p>Open this site in a hidden tab (about:blank iframe cloak).</p>
+
+      <button id="cloak-open-btn" class="panic-btn">
+        Open Cloaked Tab
+      </button>
+
+      <div class="panic-row" style="margin-top:10px;">
+        <span>Cloak Redirect:</span>
+        <input id="cloak-url-input" type="text" value="${cloakUrl}">
+      </div>
+    </div>
+  </section>
 `
 };
 
