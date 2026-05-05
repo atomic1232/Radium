@@ -93,6 +93,60 @@ function openCloaked() {
   window.location.replace(cloakUrl || "https://www.google.com");
 }
 
+async function loadGames() {
+  const container = document.getElementById("games-grid");
+  if (!container) return;
+
+  container.innerHTML = `<div class="loader"><div class="jimu-primary-loading"></div></div>`;
+
+  try {
+    const res = await Lumin.getGames({ page: 1, limit: GAMES_PER_PAGE });
+    let games = res.games || [];
+
+    games.sort((a, b) =>
+      a.name.trim().toLowerCase().localeCompare(b.name.trim().toLowerCase())
+    );
+
+    container.innerHTML = "";
+
+    games.forEach(game => {
+      const card = document.createElement("div");
+      card.className = "game-card-container";
+      card.innerHTML = `
+        <div class="container">
+          <div class="glass" data-text="${game.name}">
+            <img data-token="${game.image_token}" alt="${game.name}">
+          </div>
+        </div>
+      `;
+
+      const img = card.querySelector("img");
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(async entry => {
+          if (entry.isIntersecting) {
+            const token = img.getAttribute("data-token");
+            const url = await Lumin.getImageUrl(token).catch(() => "");
+            img.src = url;
+            observer.disconnect();
+          }
+        });
+      });
+      observer.observe(img);
+
+      card.onclick = async () => {
+        const { url } = await Lumin.getGameUrl(game.id);
+        openGame(url);
+      };
+
+      container.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "Failed to load games.";
+  }
+}
+
 // =====================
 // 4. PAGE TEMPLATES
 // =====================
@@ -140,7 +194,7 @@ const pages = {
 };
 
 // =====================
-// 5. THE PATCH: DOCK & PAGE SYSTEM
+// 5. DOCK & PAGE SYSTEM
 // =====================
 
 function buildDock() {
@@ -205,12 +259,41 @@ function loadPage(pageId) {
     updateDate();
     loadClock();
   }
+
+  if (pageId === "games") {
+    loadGames();
+  }
+
+  if (pageId === "settings") {
+    const keyDisplay = document.getElementById("panic-key-display");
+    const keyBtn = document.getElementById("set-panic-key");
+    const urlInput = document.getElementById("panic-url-input");
+    if (!keyDisplay || !keyBtn || !urlInput) return;
+    keyBtn.onclick = () => {
+      keyDisplay.textContent = "Press key...";
+      const listener = e => {
+        panicKey = e.key;
+        keyDisplay.textContent = panicKey;
+        document.removeEventListener("keydown", listener);
+      };
+      document.addEventListener("keydown", listener);
+    };
+    urlInput.oninput = () => {
+      panicUrl = urlInput.value;
+    };
+  }
 }
 
 // =====================
 // 6. INITIALIZATION
 // =====================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    if (typeof Lumin !== "undefined") await Lumin.init({});
+  } catch (e) {
+    console.warn("Lumin init failed:", e);
+  }
+
   buildDock();
 
   const initial = location.hash.replace("#", "") || "home";
