@@ -18,10 +18,5 @@
     "id": "credits",
     "label": "Credits",
     "icon": "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CreditsIcon.png"
-  },
-  {
-  "id": "cloak",
-  "label": "Cloak",
-  "icon": "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CloakIcon.png"
-}
+  }
 ]
