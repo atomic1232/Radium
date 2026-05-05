@@ -44,6 +44,22 @@ const GAMES_PER_PAGE = 1000;
 // 3. CORE FUNCTIONS
 // =====================
 
+function buildGameContainer() {
+  const existing = document.getElementById("game-container");
+  if (existing) return;
+
+  const container = document.createElement("div");
+  container.id = "game-container";
+  container.className = "game-container hidden";
+  container.innerHTML = `
+    <button id="close-game" class="close-game-btn">✕</button>
+    <iframe id="game-iframe" class="game-iframe"></iframe>
+  `;
+  document.body.appendChild(container);
+
+  document.getElementById("close-game").addEventListener("click", closeGame);
+}
+
 function openGame(url) {
   const container = document.getElementById("game-container");
   const iframe = document.getElementById("game-iframe");
@@ -226,7 +242,6 @@ function buildDock() {
     dock.appendChild(a);
   });
 
-  // Cloak — action, not a page
   const cloakA = document.createElement("a");
   cloakA.href = "javascript:void(0)";
   cloakA.innerHTML = `
@@ -294,6 +309,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("Lumin init failed:", e);
   }
 
+  buildGameContainer();
   buildDock();
 
   const initial = location.hash.replace("#", "") || "home";
