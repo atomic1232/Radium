@@ -333,22 +333,7 @@ async function loadClock() {
 function loadPage(page) {
   const content = document.getElementById("content");
   if (!content) return;
-if (page === "cloak") {
-  const btn = document.getElementById("cloak-open-btn");
-  if (btn) {
-    btn.onclick = () => {
-      openCloaked();
-    };
-  }
 
-  const cloakInput = document.getElementById("cloak-url-input");
-  if (cloakInput) {
-    cloakInput.value = cloakUrl;
-    cloakInput.oninput = () => {
-      cloakUrl = cloakInput.value;
-    };
-  }
-}
   currentPage = page;
   content.innerHTML = pages[page] || pages.home;
 
@@ -363,6 +348,22 @@ if (page === "cloak") {
 
   if (page === "settings") {
     initPanicSettings();
+  }
+
+  if (page === "cloak") {
+    const btn = document.getElementById("cloak-open-btn");
+    const cloakInput = document.getElementById("cloak-url-input");
+
+    if (btn) {
+      btn.onclick = openCloaked;
+    }
+
+    if (cloakInput) {
+      cloakInput.value = cloakUrl;
+      cloakInput.oninput = () => {
+        cloakUrl = cloakInput.value;
+      };
+    }
   }
 
   if (page === "home") {
