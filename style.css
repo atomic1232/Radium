@@ -478,7 +478,6 @@ nav a.active {
   width: 20px;
   height: 20px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 
 /* ✅ COLLAPSED: show ONLY active, perfectly centered */
