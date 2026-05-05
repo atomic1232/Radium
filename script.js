@@ -71,13 +71,26 @@ async function loadClock() {
   const clockTarget = document.getElementById("clock-widget");
   if (!clockTarget) return;
   try {
-    // Attempt Lumin widget, fallback to local clock
     const res = await Lumin.runWidget({ type: "clock", time_format: "12h" });
     clockTarget.innerHTML = "";
     clockTarget.appendChild(res.element || res);
   } catch {
     clockTarget.textContent = new Date().toLocaleTimeString();
   }
+}
+
+function openCloaked() {
+  const win = window.open("about:blank", "_blank");
+  if (!win) return;
+  win.document.body.style.margin = "0";
+  win.document.body.style.height = "100vh";
+  const iframe = win.document.createElement("iframe");
+  iframe.style.border = "none";
+  iframe.style.width = "100%";
+  iframe.style.height = "100%";
+  iframe.src = window.location.href;
+  win.document.body.appendChild(iframe);
+  window.location.replace(cloakUrl || "https://www.google.com");
 }
 
 // =====================
@@ -130,52 +143,55 @@ const pages = {
 // 5. THE PATCH: DOCK & PAGE SYSTEM
 // =====================
 
-/**
- * Builds the navigation links dynamically.
- * Synchronous to ensure links exist before loadPage runs.
- */
 function buildDock() {
   const dock = document.querySelector(".nav-expanded");
   if (!dock) return;
 
-  dock.innerHTML = ""; // Clear existing
+  dock.innerHTML = "";
 
   const dockPages = [
-    { id: "home", label: "Home", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/HomeIcon.png" },
-    { id: "games", label: "Games", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/GamesIcon.png" },
+    { id: "home",     label: "Home",     icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/HomeIcon.png" },
+    { id: "games",    label: "Games",    icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/GamesIcon.png" },
     { id: "settings", label: "Settings", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/SettingIcon.png" },
-    { id: "credits", label: "Credits", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CreditsIcon.png" }
+    { id: "credits",  label: "Credits",  icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CreditsIcon.png" }
   ];
 
   dockPages.forEach(page => {
     const a = document.createElement("a");
     a.dataset.page = page.id;
     a.href = "javascript:void(0)";
-    
-    // Inject icon and label
     a.innerHTML = `
       <img src="${page.icon}" alt="${page.label}" onerror="this.style.display='none'">
       <span>${page.label}</span>
     `;
-
     a.onclick = (e) => {
       e.preventDefault();
       loadPage(page.id);
       history.pushState({}, "", `#${page.id}`);
     };
-
     dock.appendChild(a);
   });
+
+  // Cloak — action, not a page
+  const cloakA = document.createElement("a");
+  cloakA.href = "javascript:void(0)";
+  cloakA.innerHTML = `
+    <img src="https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CloakIcon.png" alt="Cloak" onerror="this.style.display='none'">
+    <span>Cloak</span>
+  `;
+  cloakA.onclick = (e) => {
+    e.preventDefault();
+    openCloaked();
+  };
+  dock.appendChild(cloakA);
 }
 
 function loadPage(pageId) {
   const content = document.getElementById("content");
   if (!content) return;
 
-  // 1. Render Template
   content.innerHTML = pages[pageId] || pages.home;
 
-  // 2. Update Active Class in Dock (Crucial for visibility)
   const links = document.querySelectorAll(".nav-expanded a");
   links.forEach(link => {
     if (link.dataset.page === pageId) {
@@ -185,32 +201,26 @@ function loadPage(pageId) {
     }
   });
 
-  // 3. Page Specific Logic
   if (pageId === "home") {
     updateDate();
     loadClock();
   }
-  // Add other page-specific init (like loadGames) here as needed
 }
 
 // =====================
 // 6. INITIALIZATION
 // =====================
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Build the dock elements first
   buildDock();
 
-  // 2. Load the initial page based on URL hash
   const initial = location.hash.replace("#", "") || "home";
   loadPage(initial);
 
-  // 3. Set up global listeners
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") closeGame();
     if (e.key === panicKey) window.location.href = panicUrl;
   });
 
-  // 4. Start Tick Timers
   setInterval(updateDate, 1000);
   setInterval(loadClock, 1000);
 });
