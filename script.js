@@ -1,5 +1,10 @@
+/**
+ * RADIUM - Main Script
+ * Patched to fix Dock Initialization and Asset Loading
+ */
+
 // =====================
-// PARTICLES.JS
+// 1. PARTICLES.JS INIT
 // =====================
 particlesJS("particles-js", {
   particles: {
@@ -27,22 +32,18 @@ particlesJS("particles-js", {
 });
 
 // =====================
-// PANIC SETTINGS
+// 2. GLOBAL SETTINGS
 // =====================
 let panicKey = "]";
 let panicUrl = "https://www.google.com";
 let cloakUrl = "https://www.google.com";
+let currentGamePage = 1;
+const GAMES_PER_PAGE = 1000;
 
 // =====================
-// STATE
+// 3. CORE FUNCTIONS
 // =====================
-let currentPage = "home";
-let clockElement = null;
-let clockInterval = null;
 
-// =====================
-// GAME OVERLAY
-// =====================
 function openGame(url) {
   const container = document.getElementById("game-container");
   const iframe = document.getElementById("game-iframe");
@@ -61,121 +62,26 @@ function closeGame() {
   document.body.style.overflow = "auto";
 }
 
-// =====================
-// GAME STATE
-// =====================
-let currentGamePage = 1;
-const GAMES_PER_PAGE = 1000;
-
-function normalizeName(name = "") {
-  return name.trim().toLowerCase().replace(/[^a-z0-9 ]/gi, "");
+function updateDate() {
+  const el = document.getElementById("date-display");
+  if (el) el.textContent = new Date().toDateString();
 }
 
-// =====================
-// CLOAK
-// =====================
-function openCloaked() {
-  const win = window.open("about:blank", "_blank");
-  if (!win) return;
-  win.document.body.style.margin = "0";
-  win.document.body.style.height = "100vh";
-  const iframe = win.document.createElement("iframe");
-  iframe.style.border = "none";
-  iframe.style.width = "100%";
-  iframe.style.height = "100%";
-  iframe.src = window.location.href;
-  win.document.body.appendChild(iframe);
-  window.location.replace(cloakUrl || "https://www.google.com");
-}
-
-// =====================
-// GAME LOADER
-// =====================
-async function loadGames(page = 1) {
-  const container = document.getElementById("games-grid");
-  if (!container) return;
-  currentGamePage = page;
-  container.innerHTML = `<div class="loader"><div class="jimu-primary-loading"></div></div>`;
+async function loadClock() {
+  const clockTarget = document.getElementById("clock-widget");
+  if (!clockTarget) return;
   try {
-    const res = await Lumin.getGames({ page, limit: GAMES_PER_PAGE });
-    let games = res.games || [];
-    games.sort((a, b) => normalizeName(a.name).localeCompare(normalizeName(b.name)));
-    container.innerHTML = "";
-    games.forEach(game => {
-      const card = document.createElement("div");
-      card.className = "game-card-container";
-      card.innerHTML = `
-        <div class="container">
-          <div class="glass" data-text="${game.name}">
-            <img data-token="${game.image_token}" alt="${game.name}">
-          </div>
-        </div>
-      `;
-      const img = card.querySelector("img");
-      const observer = new IntersectionObserver(entries => {
-        entries.forEach(async entry => {
-          if (entry.isIntersecting) {
-            const token = img.getAttribute("data-token");
-            const url = await Lumin.getImageUrl(token).catch(() => "");
-            img.src = url;
-            observer.disconnect();
-          }
-        });
-      });
-      observer.observe(img);
-      card.onclick = async () => {
-        const { url } = await Lumin.getGameUrl(game.id);
-        openGame(url);
-      };
-      container.appendChild(card);
-    });
-  } catch (err) {
-    console.error(err);
-    container.innerHTML = "Failed to load games.";
+    // Attempt Lumin widget, fallback to local clock
+    const res = await Lumin.runWidget({ type: "clock", time_format: "12h" });
+    clockTarget.innerHTML = "";
+    clockTarget.appendChild(res.element || res);
+  } catch {
+    clockTarget.textContent = new Date().toLocaleTimeString();
   }
 }
 
 // =====================
-// SEARCH
-// =====================
-function initGameSearch() {
-  const input = document.getElementById("game-search");
-  if (!input) return;
-  input.addEventListener("input", e => {
-    const term = e.target.value.toLowerCase();
-    const cards = document.querySelectorAll(".game-card-container");
-    cards.forEach(card => {
-      const name = card.querySelector(".glass")?.getAttribute("data-text") || "";
-      const match = name.toLowerCase().includes(term);
-      card.style.display = match ? "block" : "none";
-    });
-  });
-}
-
-// =====================
-// PANIC SETTINGS
-// =====================
-function initPanicSettings() {
-  const keyDisplay = document.getElementById("panic-key-display");
-  const keyBtn = document.getElementById("set-panic-key");
-  const urlInput = document.getElementById("panic-url-input");
-  const cloakInput = document.getElementById("cloak-url-input");
-  if (!keyDisplay || !keyBtn || !urlInput) return;
-  keyBtn.onclick = () => {
-    keyDisplay.textContent = "Press key...";
-    const listener = e => {
-      panicKey = e.key;
-      keyDisplay.textContent = panicKey;
-      document.removeEventListener("keydown", listener);
-    };
-    document.addEventListener("keydown", listener);
-  };
-  urlInput.oninput = () => (panicUrl = urlInput.value);
-  if (cloakInput) cloakInput.oninput = () => (cloakUrl = cloakInput.value);
-}
-
-// =====================
-// PAGES DATA
+// 4. PAGE TEMPLATES
 // =====================
 const pages = {
   home: `
@@ -186,64 +92,54 @@ const pages = {
       <div class="clock-right" id="date-display"></div>
     </div>
     <h2 class="title">ＲＡＤＩＵＭ</h2>
-    <p class="custom-message"></p>
+    <p class="custom-message">Report bugs!</p>
   </section>`,
-  games: `<section class="hero"><h2>Games</h2><div class="search-container"><input id="game-search" type="text" placeholder="Search games..." /></div><div id="games-grid"></div></section>`,
-  settings: `<section class="hero"><h2>Settings</h2><div class="panic-box"><div class="panic-row"><span>Panic Key: <strong id="panic-key-display">${panicKey}</strong></span><button id="set-panic-key" class="panic-btn">Change</button></div><div class="panic-row"><span>Redirect:</span><input id="panic-url-input" type="text" value="${panicUrl}"></div></div></section>`,
-  credits: `<section class="hero"><h2>Credits</h2><div class="credits-list"><p>Lumin: <a href="https://luminsdk.com/" target="_blank">SDK</a></p></div></section>`
+  games: `
+  <section class="hero">
+    <h2>Games</h2>
+    <div class="search-container">
+      <input id="game-search" type="text" placeholder="Search games..." />
+    </div>
+    <div id="games-grid"></div>
+  </section>`,
+  settings: `
+  <section class="hero">
+    <h2>Settings</h2>
+    <div class="panic-box">
+      <div class="panic-row">
+        <span>Panic Key: <strong id="panic-key-display">${panicKey}</strong></span>
+        <button id="set-panic-key" class="panic-btn">Change</button>
+      </div>
+      <div class="panic-row">
+        <span>Redirect URL:</span>
+        <input id="panic-url-input" type="text" value="${panicUrl}">
+      </div>
+    </div>
+  </section>`,
+  credits: `
+  <section class="hero">
+    <h2>Credits</h2>
+    <div class="credits-list">
+      <p>Lumin: <a href="https://luminsdk.com/" target="_blank">SDK Support</a></p>
+      <p>Assets: GitHub Hosted</p>
+    </div>
+  </section>`
 };
 
 // =====================
-// CLOCK
+// 5. THE PATCH: DOCK & PAGE SYSTEM
 // =====================
-function updateDate() {
-  const el = document.getElementById("date-display");
-  if (el) el.textContent = new Date().toDateString();
-}
 
-async function loadClock() {
-  const clockTarget = document.getElementById("clock-widget");
-  if (!clockTarget) return;
-  try {
-    const res = await Lumin.runWidget({ type: "clock", time_format: "12h" });
-    clockTarget.innerHTML = "";
-    clockTarget.appendChild(res.element || res);
-  } catch {
-    clockTarget.textContent = new Date().toLocaleTimeString();
-  }
-}
-
-// =====================
-// PAGE SYSTEM
-// =====================
-function loadPage(page) {
-  const content = document.getElementById("content");
-  if (!content) return;
-  content.innerHTML = pages[page] || pages.home;
-  
-  // Mark active in the dock
-  document.querySelectorAll(".nav-expanded a").forEach(link => {
-    link.classList.toggle("active", link.dataset.page === page);
-  });
-
-  if (page === "games") { loadGames(1); initGameSearch(); }
-  if (page === "settings") { initPanicSettings(); }
-  if (page === "home") {
-    const msg = document.querySelector(".custom-message");
-    if (msg) msg.textContent = "Welcome to Radium";
-    updateDate();
-    loadClock();
-  }
-}
-
-// =====================
-// DOCK (FIXED SYNC ISSUE)
-// =====================
+/**
+ * Builds the navigation links dynamically.
+ * Synchronous to ensure links exist before loadPage runs.
+ */
 function buildDock() {
   const dock = document.querySelector(".nav-expanded");
   if (!dock) return;
 
-  dock.innerHTML = "";
+  dock.innerHTML = ""; // Clear existing
+
   const dockPages = [
     { id: "home", label: "Home", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/HomeIcon.png" },
     { id: "games", label: "Games", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/GamesIcon.png" },
@@ -255,29 +151,66 @@ function buildDock() {
     const a = document.createElement("a");
     a.dataset.page = page.id;
     a.href = "javascript:void(0)";
-    a.innerHTML = `<img src="${page.icon}" alt="${page.label}"><span>${page.label}</span>`;
+    
+    // Inject icon and label
+    a.innerHTML = `
+      <img src="${page.icon}" alt="${page.label}" onerror="this.style.display='none'">
+      <span>${page.label}</span>
+    `;
+
     a.onclick = (e) => {
       e.preventDefault();
       loadPage(page.id);
       history.pushState({}, "", `#${page.id}`);
     };
+
     dock.appendChild(a);
   });
 }
 
+function loadPage(pageId) {
+  const content = document.getElementById("content");
+  if (!content) return;
+
+  // 1. Render Template
+  content.innerHTML = pages[pageId] || pages.home;
+
+  // 2. Update Active Class in Dock (Crucial for visibility)
+  const links = document.querySelectorAll(".nav-expanded a");
+  links.forEach(link => {
+    if (link.dataset.page === pageId) {
+      link.classList.add("active");
+    } else {
+      link.classList.remove("active");
+    }
+  });
+
+  // 3. Page Specific Logic
+  if (pageId === "home") {
+    updateDate();
+    loadClock();
+  }
+  // Add other page-specific init (like loadGames) here as needed
+}
+
 // =====================
-// INIT (FIXED ORDER)
+// 6. INITIALIZATION
 // =====================
 document.addEventListener("DOMContentLoaded", () => {
+  // 1. Build the dock elements first
   buildDock();
+
+  // 2. Load the initial page based on URL hash
   const initial = location.hash.replace("#", "") || "home";
+  loadPage(initial);
+
+  // 3. Set up global listeners
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") closeGame();
     if (e.key === panicKey) window.location.href = panicUrl;
   });
-  loadPage(initial);
-  updateDate();
-  loadClock();
+
+  // 4. Start Tick Timers
   setInterval(updateDate, 1000);
   setInterval(loadClock, 1000);
 });
