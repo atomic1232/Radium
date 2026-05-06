@@ -304,7 +304,7 @@ function loadPage(pageId) {
 // =====================
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    if (typeof Lumin !== "undefined") await Lumin.init({ container: document.body });
+    if (typeof Lumin !== "undefined") await Lumin.init({ headless: true });
   } catch (e) {
     console.warn("Lumin init failed:", e);
   }
