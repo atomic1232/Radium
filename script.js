@@ -238,7 +238,7 @@ function buildDock() {
     { id: "home",      label: "Home",              icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/HomeIcon.png" },
     // GAMES HIDDEN - restore this line to re-enable:
     // { id: "games", label: "Games", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/GamesIcon.png" },
-    { id: "downloads", label: "Downloads & Links", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/DownloadsIcon.png" },
+    { id: "downloads", label: "Downloads & Links", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/D&LIcon.png" },
     { id: "settings",  label: "Settings",          icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/SettingIcon.png" },
     { id: "credits",   label: "Credits",           icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CreditsIcon.png" }
   ];
