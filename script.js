@@ -1,6 +1,5 @@
 /**
  * RADIUM - Main Script
- * Patched to fix Dock Initialization and Asset Loading
  */
 
 // =====================
@@ -109,6 +108,10 @@ function openCloaked() {
   window.location.replace(cloakUrl || "https://www.google.com");
 }
 
+// =====================
+// GAMES CODE (HIDDEN - NOT IN USE)
+// Uncomment the dock entry and loadPage block to re-enable
+// =====================
 async function loadGames() {
   const container = document.getElementById("games-grid");
   if (!container) return;
@@ -177,6 +180,8 @@ const pages = {
     <h2 class="title">ＲＡＤＩＵＭ</h2>
     <p class="custom-message">Report bugs!</p>
   </section>`,
+
+  // GAMES PAGE HIDDEN - restore dock entry and loadPage block to re-enable
   games: `
   <section class="hero">
     <h2>Games</h2>
@@ -185,6 +190,15 @@ const pages = {
     </div>
     <div id="games-grid"></div>
   </section>`,
+
+  downloads: `
+  <section class="hero">
+    <h2>Downloads & Links</h2>
+    <div class="credits-list">
+      <p>Coming soon.</p>
+    </div>
+  </section>`,
+
   settings: `
   <section class="hero">
     <h2>Settings</h2>
@@ -199,6 +213,7 @@ const pages = {
       </div>
     </div>
   </section>`,
+
   credits: `
   <section class="hero">
     <h2>Credits</h2>
@@ -220,10 +235,12 @@ function buildDock() {
   dock.innerHTML = "";
 
   const dockPages = [
-    { id: "home",     label: "Home",     icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/HomeIcon.png" },
-    { id: "games",    label: "Games",    icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/GamesIcon.png" },
-    { id: "settings", label: "Settings", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/SettingIcon.png" },
-    { id: "credits",  label: "Credits",  icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CreditsIcon.png" }
+    { id: "home",      label: "Home",              icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/HomeIcon.png" },
+    // GAMES HIDDEN - restore this line to re-enable:
+    // { id: "games", label: "Games", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/GamesIcon.png" },
+    { id: "downloads", label: "Downloads & Links", icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/DownloadsIcon.png" },
+    { id: "settings",  label: "Settings",          icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/SettingIcon.png" },
+    { id: "credits",   label: "Credits",           icon: "https://cdn.jsdelivr.net/gh/atomic1232/Radium@latest/assets/CreditsIcon.png" }
   ];
 
   dockPages.forEach(page => {
@@ -275,9 +292,10 @@ function loadPage(pageId) {
     loadClock();
   }
 
-  if (pageId === "games") {
-    loadGames();
-  }
+  // GAMES HIDDEN - restore this block to re-enable:
+  // if (pageId === "games") {
+  //   loadGames();
+  // }
 
   if (pageId === "settings") {
     const keyDisplay = document.getElementById("panic-key-display");
